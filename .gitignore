@@ -1,1 +1,4 @@
+#ignoro mi entorno virtual de PyTorch (Lucas)
 pytorch_cpu_env/
+
+cache/
