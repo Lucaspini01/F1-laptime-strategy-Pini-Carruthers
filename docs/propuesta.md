@@ -1,3 +1,0 @@
-Dado el registro de vueltas de prácticas y carrera de F1 para una determinada pista, predecir el tiempo de vuelta (LapTime) de un piloto en una vuelta dada, a partir de features conocidas antes de completar esa vuelta (compuesto de neumático, edad del neumático, stint, posición en pista, estado de la pista, etc.).
-Luego simular una carrera con la finalidad de testear los modelos aprendidos y entender que tan alejado estan de la realidad.
-Por ultimo, aprender una representacion de baja dimension de las vueltas, entender si se clusterizan, si existen regiones del espacio latente en base a los pilotos o en base a que. Explorar arquitecturas de deep learning para reducir la dimensionalidad de cada vuelta o piloto o carrera.
