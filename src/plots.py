@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from matplotlib.patches import Patch
+from sklearn.metrics import mean_absolute_error
 
 # CONSTANTES DE COLORES
 COMPOUND_COLORS = {
@@ -84,11 +85,6 @@ def eda_practice(col_laps, title_prefix="FP"):
 
 
 # FUNCIONES PARA METRICAS
-# src/plots.py
-
-import numpy as np
-import matplotlib.pyplot as plt
-
 
 def y_true_vs_y_pred(y_true, y_pred, title="y_true vs y_pred", ax=None):
     """
@@ -139,8 +135,6 @@ def residuals_hist(y_true, y_pred, bins=20, title="Histograma de residuos", ax=N
 
 # FUNCIONES PARA REPRESENTACIONES
 
-
-
 def latent_scatter(Z, labels, title="", ax=None):
     """
     Scatter 2D del espacio latente Z (shape: [n_samples, 2]),
@@ -170,10 +164,7 @@ def latent_scatter(Z, labels, title="", ax=None):
     if ax is None:
         plt.show()
 
-
-# =============================================================================
 # FUNCIONES PARA SIMULADOR DE ESTRATEGIAS
-# =============================================================================
 
 def plot_strategy_lap_times(df_sim, strategy_name, compound_colors=None, title_suffix=""):
     """
@@ -211,7 +202,7 @@ def plot_strategy_lap_times(df_sim, strategy_name, compound_colors=None, title_s
             markersize=4,
         )
         
-        # Marcar pit stops (primera vuelta de cada stint > 1)
+        # Marca pit stops (primera vuelta de cada stint > 1)
         if stint > 1:
             first_lap = stint_data.iloc[0]
             ax.axvline(x=first_lap["LapNumber"], color='red', linestyle='--', alpha=0.5)
@@ -231,7 +222,6 @@ def plot_strategy_lap_times(df_sim, strategy_name, compound_colors=None, title_s
     plt.tight_layout()
     plt.show()
     
-    # Resumen de tiempos por stint
     print("\n=== Resumen por Stint ===")
     for stint in df_sim["Stint"].unique():
         stint_data = df_sim[df_sim["Stint"] == stint]
@@ -265,7 +255,7 @@ def plot_strategy_comparison(standings, title="Comparación de Estrategias - Mon
     bars = ax.barh(strategies_names, times_seconds, 
                    color=['purple' if i == 0 else 'steelblue' for i in range(len(standings))])
     
-    # Añadir etiquetas con tiempo y diferencia
+    # Etiquetas con tiempo y diferencia
     for i, (time, diff) in enumerate(zip(standings["total_time_str"], time_diff)):
         if diff == 0:
             label = f"{time}"
@@ -307,12 +297,11 @@ def plot_three_way_comparison(df_optimal, df_real_sim, df_real_actual,
     --------
     dict : Diccionario con estadísticas comparativas
     """
-    # Asegurar que estén ordenados
+    # Asegura que estén ordenados
     df_optimal = df_optimal.sort_values("LapNumber").copy()
     df_real_sim = df_real_sim.sort_values("LapNumber").copy()
     df_real_actual = df_real_actual.sort_values("LapNumber").copy()
     
-    # Crear figura
     fig, ax = plt.subplots(figsize=(16, 8))
     
     # Tiempos de vuelta comparativos (incluyendo penalización de pit stops)
@@ -349,7 +338,7 @@ def plot_three_way_comparison(df_optimal, df_real_sim, df_real_actual,
         alpha=0.8
     )
     
-    # Marcar pit stops de estrategia óptima
+    # Marca pit stops de estrategia óptima
     for stint in df_optimal["Stint"].unique():
         if stint > 1:
             first_lap_stint = df_optimal[df_optimal["Stint"] == stint].iloc[0]
@@ -359,7 +348,7 @@ def plot_three_way_comparison(df_optimal, df_real_sim, df_real_actual,
                     f'PIT\n(Opt)', rotation=0, va='top', ha='center', 
                     fontsize=8, color='green', fontweight='bold')
     
-    # Marcar pit stops de estrategia real
+    # Marca pit stops de estrategia real
     for stint in df_real_actual["Stint"].unique():
         if stint > 1:
             first_lap_stint = df_real_actual[df_real_actual["Stint"] == stint].iloc[0]
@@ -381,7 +370,7 @@ def plot_three_way_comparison(df_optimal, df_real_sim, df_real_actual,
     plt.tight_layout()
     plt.show()
     
-    # Calcular tiempos acumulados para estadísticas
+    # Calcula tiempos acumulados para estadísticas
     cumulative_optimal = df_optimal["LapTime_total_s"].cumsum()
     cumulative_real_sim = df_real_sim["LapTime_total_s"].cumsum()
     cumulative_real_actual = df_real_actual["LapTime_s"].cumsum()
@@ -390,15 +379,12 @@ def plot_three_way_comparison(df_optimal, df_real_sim, df_real_actual,
     diff_real_sim = cumulative_real_sim.values - cumulative_optimal.values
     diff_real_actual = cumulative_real_actual.values - cumulative_optimal.values
     
-    # Retornar estadísticas con los nombres correctos que espera print_comparison_report
-    from sklearn.metrics import mean_absolute_error
-    
+    # Retorna estadísticas con los nombres correctos que espera print_comparison_report    
     n_laps = len(df_optimal)
     total_optimal = cumulative_optimal.iloc[-1]
     total_real_sim = cumulative_real_sim.iloc[-1]
     total_real_actual = cumulative_real_actual.iloc[-1]
     
-    # Calcular MAE entre simulación y realidad
     mae_sim = mean_absolute_error(df_real_actual["LapTime_s"], df_real_sim["LapTime_total_s"])
     
     return {
@@ -429,63 +415,62 @@ def plot_leaderboard_comparison(leaderboard_comparison, title="Clasificación Mo
     subtitle : str
         Subtítulo
     """
-    fig, ax = plt.subplots(figsize=(12, 10))
+    fig, ax = plt.subplots(figsize=(14, 11))
     
-    # Filtrar solo los que tienen tiempo válido
+    # Filtra solo los que tienen tiempo válido
     leaderboard_plot = leaderboard_comparison[leaderboard_comparison["Time_s"].notna()].copy()
     
     # Colores: resaltar a Colapinto
     colors = []
     for driver in leaderboard_plot["Driver"]:
         if driver == "COL":
-            colors.append("blue")  # Azul para real
+            colors.append("blue")
         elif driver == "COL*":
-            colors.append("green")  # Verde para simulado
+            colors.append("green")
         else:
-            colors.append("gray")  # Gris para resto
+            colors.append("gray")
     
-    # Gráfico horizontal
     bars = ax.barh(
         leaderboard_plot["Driver"],
         leaderboard_plot["Time_s"],
         color=colors,
         edgecolor='black',
-        linewidth=0.5
+        linewidth=0.8
     )
     
-    # Añadir etiquetas de posición
+    # Añade etiquetas de posición
     for idx, row in leaderboard_plot.iterrows():
         pos = row["New_Position"]
         time = row["Time_s"]
         driver = row["Driver"]
         
-        # Etiqueta de posición
         label = f"P{int(pos)}"
         if driver in ["COL", "COL*"]:
             fontweight = 'bold'
-            fontsize = 10
+            fontsize = 12
         else:
             fontweight = 'normal'
-            fontsize = 9
+            fontsize = 11
         
         ax.text(time, driver, f"  {label}", va='center', ha='left', 
                 fontsize=fontsize, fontweight=fontweight)
     
-    ax.set_xlabel("Tiempo Total (s)", fontsize=12, fontweight='bold')
-    ax.set_ylabel("Piloto", fontsize=12, fontweight='bold')
+    ax.set_xlabel("Tiempo Total (s)", fontsize=14, fontweight='bold')
+    ax.set_ylabel("Piloto", fontsize=14, fontweight='bold')
     full_title = f"{title}\n{subtitle}" if subtitle else title
-    ax.set_title(full_title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_title(full_title, fontsize=16, fontweight='bold', pad=20)
     
-    # Leyenda
     legend_elements = [
         Patch(facecolor='blue', label='Colapinto (Estrategia Real)'),
         Patch(facecolor='green', label='Colapinto (Mejor Estrategia)'),
         Patch(facecolor='gray', label='Otros Pilotos')
     ]
-    ax.legend(handles=legend_elements, loc='lower right', framealpha=0.9)
+    ax.legend(handles=legend_elements, loc='lower right', framealpha=0.9, fontsize=12)
     
     ax.grid(True, alpha=0.3, axis='x')
     ax.invert_yaxis()  # Primer lugar arriba
+    
+    ax.tick_params(axis='both', which='major', labelsize=11)
     
     plt.tight_layout()
     plt.show()

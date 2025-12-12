@@ -1,5 +1,3 @@
-# src/simulator.py
-
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Any
 
@@ -108,9 +106,7 @@ def simulate_strategy_for_driver(
     # Recalcular FE (stints, tyrelife_norm, etc.) con la nueva estrategia
     df_fe = add_basic_features(df_sim)
     
-    # Si el modelo usa features avanzadas (como degradation_rate, S1_delta, etc.),
-    # agregarlas. Detectamos esto viendo si alguna feature avanzada está en la lista.
-    # Features avanzadas típicas: degradation_rate, S1_delta, track_evo, etc.
+    # Si el modelo usa features avanzadas (como degradation_rate, S1_delta, etc.), se agregan.
     advanced_features = {
         "degradation_rate", "S1_delta", "S2_delta", "S3_delta", 
         "S1_rel", "S2_rel", "S3_rel", "Lap_global", "track_evo",
@@ -135,10 +131,8 @@ def simulate_strategy_for_driver(
     pit_penalty = np.zeros_like(lap_times_pred, dtype=float)
 
     for i, row in df_ordered.iterrows():
-        # Penalización de largada (vuelta 1)
+        # Penalización de largada (vuelta 1) debido a salida desde parado
         if row["LapNumber"] == 1:
-            # Calcular penalización basada en la diferencia real observada
-            # En los datos reales, la vuelta 1 es ~15-20s más lenta
             pit_penalty[i] += 15.0
         # Penalización por pit stop (primera vuelta de cada stint > 1)
         elif row["Stint"] > 1 and row["TyreLife"] == 1:
@@ -207,10 +201,7 @@ def simulate_strategies(
 
     return standings
 
-
-# =============================================================================
 # FUNCIONES PARA EXTRACCIÓN DE ESTRATEGIA REAL
-# =============================================================================
 
 def extract_real_strategy_from_data(df_race):
     """

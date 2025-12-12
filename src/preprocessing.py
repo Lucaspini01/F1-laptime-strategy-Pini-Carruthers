@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 
 def clean_session(col_laps, laptime_max_s=None, delta_from_best=None, verbose=True):
     """
@@ -41,11 +42,6 @@ def clean_session(col_laps, laptime_max_s=None, delta_from_best=None, verbose=Tr
 
 # FEATURE ENGINEERING
 
-# src/preprocessing.py
-
-import pandas as pd
-import numpy as np
-
 def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Feature engineering v1 para el problema de LapTime.
@@ -53,12 +49,12 @@ def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # 1) LapNumber normalizado por sesión (fase de la sesión)
+    # LapNumber normalizado por sesión (fase de la sesión)
     if {"Session", "LapNumber"}.issubset(df.columns):
         max_laps_session = df.groupby("Session")["LapNumber"].transform("max")
         df["lap_norm_session"] = df["LapNumber"] / max_laps_session
 
-    # 2) Progresión dentro del stint
+    # Progresión dentro del stint
     if {"Session", "Stint", "LapNumber"}.issubset(df.columns):
         # largo del stint
         stint_sizes = df.groupby(["Session", "Stint"])["LapNumber"].transform("count")
@@ -72,17 +68,17 @@ def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
         # normalizado 0..1
         df["stint_lap_norm"] = df["stint_lap_index"] / df["stint_len"]
 
-    # 3) TyreLife normalizado dentro del stint
+    # TyreLife normalizado dentro del stint
     if {"Session", "Stint", "TyreLife"}.issubset(df.columns):
         max_tyre_stint = df.groupby(["Session", "Stint"])["TyreLife"].transform("max")
         # evitar división por cero o NaN
         df["tyrelife_norm_stint"] = df["TyreLife"] / max_tyre_stint.replace(0, np.nan)
 
-    # 4) Indicador de carrera vs práctica
+    # Indicador de carrera vs práctica
     if "Session" in df.columns:
         df["is_race"] = (df["Session"] == "RACE").astype(int)
 
-    # 5) Orden de compuestos (más blando -> más duro)
+    # Orden de compuestos (más blando -> más duro)
     if "Compound" in df.columns:
         compound_map = {
             "SOFT": 0,
@@ -95,7 +91,6 @@ def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-# FE 2.0
 def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Feature engineering v2 para el problema de LapTime.
@@ -104,9 +99,7 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # -------------------------------------------------
     # 1) Lap global dentro de cada sesión
-    # -------------------------------------------------
     # Idea: en carrera el fuel load hace que las primeras vueltas sean más lentas.
     # Esto le da al modelo una pista de "en qué fase" de la sesión estamos.
     if "Session" in df.columns:
@@ -114,24 +107,16 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
         df["Lap_global"] = df.groupby("Session").cumcount() + 1
         df = df.sort_index()
 
-    # -------------------------------------------------
     # 2) Evolución de la pista / sesión (track evolution proxy)
-    # -------------------------------------------------
     if {"Session", "LapNumber"}.issubset(df.columns):
         max_laps_session = df.groupby("Session")["LapNumber"].transform("max")
         # similar a lap_norm_session, pero lo dejamos separado por claridad
         df["track_evo"] = df["LapNumber"] / max_laps_session
 
-    # -------------------------------------------------
-    # 3) Deltas y ratios de sectores vs mejor de la sesión
-    #    (con conversión robusta a segundos)
-    # -------------------------------------------------
-    from pandas.api.types import is_numeric_dtype
-
+    # 3) Deltas y ratios de sectores vs mejor de la sesión (con conversión robusta a segundos)
     for i in (1, 2, 3):
         col_time = f"Sector{i}Time"
         if col_time in df.columns:
-            # Tomamos la columna original
             time = df[col_time]
 
             # Si no es numérica, la pasamos a timedelta -> segundos
@@ -146,16 +131,12 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
             else:
                 best = pd.to_timedelta(df[col_time], errors="coerce").dt.total_seconds().min()
 
-            # Delta (cuánto más lento que el mejor sector de la sesión)
             df[f"S{i}_delta"] = time - best
 
-            # Ratio (sector actual / mejor sector)
             denom = best.replace(0, np.nan)
             df[f"S{i}_rel"] = time / denom
 
-    # -------------------------------------------------
     # 4) Features de velocidades (pace / aero / tracción)
-    # -------------------------------------------------
     # Drop y ratio entre SpeedTrap y Speed en línea de meta
     if {"SpeedST", "SpeedFL"}.issubset(df.columns):
         df["speed_drop_fl"] = df["SpeedST"] - df["SpeedFL"]
@@ -170,9 +151,7 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
             if col in df.columns:
                 df[f"{col}_norm_st"] = df[col] / denom
 
-    # -------------------------------------------------
     # 5) Dinámica de stint / neumáticos
-    # -------------------------------------------------
     # a) Vueltas desde que saliste del pit (por stint)
     if {"Session", "Stint", "LapNumber"}.issubset(df.columns):
         first_lap_stint = df.groupby(["Session", "Stint"])["LapNumber"].transform("min")
@@ -205,9 +184,7 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
             df["Compound"].map(compound_base).astype("float")
         )
 
-    # -------------------------------------------------
     # 6) TrackStatus simplificado (banderas / condiciones raras)
-    # -------------------------------------------------
     if "TrackStatus" in df.columns:
         # Pasamos a numérico por si viene como string; NaN => 0
         ts_num = pd.to_numeric(df["TrackStatus"], errors="coerce").fillna(0)
@@ -217,10 +194,7 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-
-# =============================================================================
 # FUNCIONES PARA PROCESAMIENTO DE DATOS DE CARRERA (FastF1)
-# =============================================================================
 
 def time_to_seconds(time_val):
     """
@@ -261,7 +235,6 @@ def create_leaderboard_from_session(session):
     """
     race_results = session.results
     
-    # Crear DataFrame con clasificación real
     leaderboard = pd.DataFrame({
         "Position": race_results["Position"],
         "Driver": race_results["Abbreviation"],
@@ -270,12 +243,11 @@ def create_leaderboard_from_session(session):
         "Status": race_results["Status"],
     })
     
-    # Convertir tiempo a segundos
     leaderboard["Gap_s"] = leaderboard["Time"].apply(time_to_seconds)
     
     # El ganador (P1) tiene el tiempo absoluto, los demás tienen gap
     winner = leaderboard[leaderboard["Position"] == 1].iloc[0]
-    winner_time_s = winner["Gap_s"]  # Este es el tiempo absoluto del ganador
+    winner_time_s = winner["Gap_s"]
     
     # Calcular tiempos absolutos para todos
     leaderboard["Time_s"] = leaderboard.apply(
@@ -329,10 +301,8 @@ def add_simulated_driver_to_leaderboard(leaderboard, session, driver_abbr,
         "Laps_completed": simulated_laps
     }
     
-    # Convertir a lista
     leaderboard_list = leaderboard_extended.to_dict('records')
     
-    # Calcular vueltas completadas para cada piloto
     total_race_laps = session.total_laps
     
     for record in leaderboard_list:
@@ -354,7 +324,6 @@ def add_simulated_driver_to_leaderboard(leaderboard, session, driver_abbr,
     
     leaderboard_list.append(driver_simulated)
     
-    # Crear DataFrame
     leaderboard_comparison = pd.DataFrame(leaderboard_list)
     
     # Ordenar: primero por vueltas completadas (desc), luego por tiempo (asc)
