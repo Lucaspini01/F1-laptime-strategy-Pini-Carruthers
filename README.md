@@ -32,6 +32,7 @@ docs/
 
 ## Material del proyecto
 
-[![Poster del proyecto](docs/Poster_ML_F1_Pini_Carruthers.pdf)](docs/poster.pdf)
-  
 [Ver Informe en PDF](docs/Informe_Pini_Carruthers_PF.pdf)
+[![Poster del proyecto](docs/graficos/poster.png)](docs/Poster_ML_F1_Pini_Carruthers.pdf)
+  
+
