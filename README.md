@@ -9,9 +9,15 @@ El objetivo del proyecto es usar datos reales de **Fórmula 1** (Mónaco 2025, v
 3. **Simular estrategias de neumáticos** usando el modelo de tiempo de vuelta para comparar estrategias alternativas contra la estrategia real de carrera.
 
 
+## Material del proyecto
+
+[Ver Informe en PDF](docs/Informe_Pini_Carruthers_PF.pdf)
+[![Poster del proyecto](docs/graficos/poster.png)](docs/Poster_ML_F1_Pini_Carruthers.pdf)
+
+
 ## Estructura del repositorio
 
-
+```text
 data/
   processed/          # CSV limpios usados para entrenar y evaluar modelos
 src/
@@ -28,11 +34,7 @@ docs/
   Informe_Pini_Carruthers_PF.pdf      # Informe estilo IEEE
   Poster_ML_F1_Pini_Carruthers.pdf    # Póster presentado en el AI Fest de la Universidad de San Andrés
   graficos/                           # Imágenes usadas en informe/póster
+```
 
-
-## Material del proyecto
-
-[Ver Informe en PDF](docs/Informe_Pini_Carruthers_PF.pdf)
-[![Poster del proyecto](docs/graficos/poster.png)](docs/Poster_ML_F1_Pini_Carruthers.pdf)
   
 
