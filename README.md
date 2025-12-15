@@ -8,11 +8,10 @@ El objetivo del proyecto es usar datos reales de **Fórmula 1** (Mónaco 2025, v
 2. **Aprender representaciones de baja dimensión** (PCA y autoencoders) para analizar cómo se organizan las vueltas en un espacio latente (por compuesto, piloto ritmo…).
 3. **Simular estrategias de neumáticos** usando el modelo de tiempo de vuelta para comparar estrategias alternativas contra la estrategia real de carrera.
 
----
 
 ## Estructura del repositorio
 
-```text
+
 data/
   processed/          # CSV limpios usados para entrenar y evaluar modelos
 src/
@@ -30,7 +29,6 @@ docs/
   Poster_ML_F1_Pini_Carruthers.pdf    # Póster presentado en el AI Fest de la Universidad de San Andrés
   graficos/                           # Imágenes usadas en informe/póster
 
----
 
 ## Material del proyecto
 
