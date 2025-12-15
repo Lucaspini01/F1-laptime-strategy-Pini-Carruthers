@@ -31,3 +31,9 @@ docs/
   graficos/                           # Imágenes usadas en informe/póster
 
 ---
+
+## Material del proyecto
+
+[![Poster del proyecto](docs/Poster_ML_F1_Pini_Carruthers.pdf)](docs/poster.pdf)
+  
+[Ver Informe en PDF](docs/Informe_Pini_Carruthers_PF.pdf)
